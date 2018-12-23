@@ -1,0 +1,17 @@
+package server;
+
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
+import java.net.Socket;
+
+public class ClientThread {
+	public Socket clientSocket;
+	public ObjectOutputStream out;
+	public ObjectInputStream in;
+	public String message;
+	public boolean userLoggedIn;
+
+	public ClientThread(boolean userLoggedIn) {
+		this.userLoggedIn = userLoggedIn;
+	}
+}

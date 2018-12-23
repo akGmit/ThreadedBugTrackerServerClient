@@ -1,0 +1,69 @@
+package server;
+
+import java.util.Date;
+
+public class BugRecord {
+	private String applicationName;
+	private Date date;
+	private String platform;
+	private String description;
+	private String status;
+	private String id;
+	
+	//Setters
+	//Getters
+	public String getApplicationName() {
+		return applicationName;
+	}
+	public void setApplicationName(String applicationName) {
+		this.applicationName = applicationName;
+	}
+	public Date getDate() {
+		return date;
+	}
+	public void setDate(Date date) {
+		this.date = date;
+	}
+	public String getPlatform() {
+		return platform;
+	}
+	public void setPlatform(String platform) {
+		this.platform = platform;
+	}
+	public String getDescription() {
+		return description;
+	}
+	public void setDescription(String description) {
+		this.description = description;
+	}
+	public String getStatus() {
+		return status;
+	}
+	public void setStatus(String status) {
+		this.status = status;
+	}
+	public String getId() {
+		return id;
+	}
+	public void setId(String id) {
+		this.id = id;
+	}
+	
+	public String toFile() {
+		String bug;
+		
+		bug = String.format("\n%s\n%s\n%s\n%s\n%s\n%s", 
+				getApplicationName(), getDate(), getPlatform(), getDescription(), getStatus(), getId());
+		
+		return bug;
+	}
+	
+	public String toString() {
+		String bug;
+		
+		bug = String.format("\nApplication name: %s \nDate: %-30s \nPlatform: %18s\nDescription: %18s\nStatus: %18s\nBug ID: %18s", 
+				getApplicationName(), getDate(), getPlatform(), getDescription(), getStatus(), getId());
+		
+		return bug;
+	}
+}

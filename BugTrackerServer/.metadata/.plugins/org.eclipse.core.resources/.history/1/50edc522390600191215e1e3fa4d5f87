@@ -1,0 +1,76 @@
+package server;
+
+import java.io.BufferedReader;
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.FileReader;
+import java.io.FileWriter;
+import java.io.IOException;
+import java.io.PrintWriter;
+import java.util.ArrayList;
+import java.util.List;
+
+public class EmployeeList {
+	private List<Employee> employeeList;
+	private File file = new File("emplyeeList.dat");
+	
+	public EmployeeList() {
+		employeeList = new ArrayList<>();
+		loadEmployeeList();
+	}
+	
+	private void loadEmployeeList() {
+		BufferedReader br;
+		Employee emp;
+		try {
+			br = new BufferedReader(new FileReader(file));
+			String line;
+			while((line = br.readLine()) != null) {
+				emp = new Employee();
+				emp.setName(line);
+				emp.setEmpID(br.readLine());
+				emp.setEmail(br.readLine());
+				emp.setPassword(br.readLine());
+				emp.setDepartment(br.readLine());
+				emp.setAssignedBugId(br.readLine());
+				employeeList.add(emp);
+			}
+			br.close();
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+	}
+	
+	public String addNewEmployee(Employee emp) {
+		String result = "";
+		
+		for(Employee e : employeeList) {
+			if(e.getEmail().equalsIgnoreCase(emp.getEmail())) {
+				result = "Error! User with this email already exists!";
+			}else if(e.getEmpID().equalsIgnoreCase(emp.getEmpID())) {
+				result = "Error! User with this employee ID already exists!";
+			}else {
+				employeeList.add(emp);
+			}
+		}
+		return "Employee registered succesfully!";
+	}
+	
+	private void writeToList(){
+		try {
+			PrintWriter out = new PrintWriter(new FileWriter(file, true), true);
+			out.println("Helsdfllowed");
+			out.close();
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+	}
+
+	public List<Employee> getEmployeList() {
+		return employeeList;
+	}
+
+	public void setEmployeList(List<Employee> employeList) {
+		this.employeeList = employeList;
+	}
+}

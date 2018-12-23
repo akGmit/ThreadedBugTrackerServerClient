@@ -1,0 +1,265 @@
+package server;
+
+import java.io.IOException;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
+import java.io.Serializable;
+import java.net.ServerSocket;
+import java.net.Socket;
+import java.text.SimpleDateFormat;
+import java.util.Date;
+import java.util.Random;
+
+public class BugTrackerServer {
+
+	private ServerSocket ss;
+	private static final int SERVER_PORT = 10000;  
+	private volatile boolean keepRunning = true;
+	private EmployeeList employeeList = new EmployeeList();
+	private BugList bugList = new BugList();
+	
+	//Main method to start java application
+	public static void main(String[] args) {
+		new BugTrackerServer(); 
+	}
+
+	private BugTrackerServer(){
+		try {
+			ss = new ServerSocket(SERVER_PORT); //Start the server socket listening on port 8080
+			System.out.println("Server started and listening on port " + SERVER_PORT);
+			
+			while (keepRunning){ 
+				try { 
+					Socket s = ss.accept(); 
+					new Thread(new ClientThread(s)).start(); 
+				} catch (IOException e) { 
+					System.out.println("Error handling incoming request..." + e.getMessage());
+				}
+			}
+		} catch (IOException e) { 
+			System.out.println("Yikes! Something bad happened..." + e.getMessage());
+		}
+	}
+	
+	//Server class
+	/*private BugTrackerServer(){
+		try {
+			ss = new ServerSocket(SERVER_PORT); //Start the server socket listening on port 8080
+
+			Thread server = new Thread(new ServerThread(), "BugServer"); 
+			server.setPriority(Thread.MAX_PRIORITY); 
+			server.start(); 
+
+			System.out.println("Server started and listening on port " + SERVER_PORT);
+		} catch (IOException e) { 
+			System.out.println("Yikes! Something bad happened..." + e.getMessage());
+		}
+	}
+	//Server Thread
+	private class ServerThread implements Runnable{ 
+		public void run() {
+			int counter = 0; 
+			while (keepRunning){ 
+				try { 
+					Socket s = ss.accept(); 
+					new Thread(new ClientThread(s), "T-" + counter).start(); 
+					counter++; 
+				} catch (IOException e) { 
+					System.out.println("Error handling incoming request..." + e.getMessage());
+				}
+			}
+		}
+	}*/
+	//Client thread
+	private class ClientThread implements Runnable{
+		private Socket clientSocket;
+		ObjectOutputStream out;
+		ObjectInputStream in;
+		String message;
+		boolean userLoggedIn = false;
+
+		private ClientThread(Socket request) { 
+			this.clientSocket = request; 
+		}
+
+		public void run() {
+			String commandList = "Command list:\n1. Add bug\n2. Assign bug\n3. View not assigned bugs\n4. View all bugs\n5. Update bug record";
+			String exitMessage = "\n\nEnter \"exit\" to quit, or \"C\" to continue";
+			try{
+				//Read in the request from the remote computer to this programme. This process is called Deserialization or Unmarshalling
+				out = new ObjectOutputStream(clientSocket.getOutputStream());
+				out.flush();
+				in = new ObjectInputStream(clientSocket.getInputStream());
+				System.out.println("Client accepted from " + clientSocket.getInetAddress());
+				
+				do {		
+					//Login or register do while loop
+					do {			
+						sendMessage("Welcome to Bug Tracker application.\nEnter command number to continue:\n1.Login\n2.Register");
+						message = (String) in.readObject();
+
+						if(message.equalsIgnoreCase("1")) {
+							String employeeEmail;
+							String password;
+							
+							sendMessage("Please enter email: ");
+							employeeEmail = (String) in.readObject();
+							sendMessage("Enter password: ");
+							password = (String) in.readObject();
+							
+						}else if(message.equalsIgnoreCase("2")) {
+							boolean detailsCorrect = false;
+							String registrationStatus;
+							
+							do {
+								registrationStatus = employeeList.addNewEmployee(registerEmployee());
+								if(registrationStatus.equalsIgnoreCase("Employee registered succesfully!")) {
+									userLoggedIn = true;
+									detailsCorrect = true;
+									sendMessage(registrationStatus + " Details " + detailsCorrect);
+								}else {
+									sendMessage(registrationStatus + exitMessage);
+								}
+								message = (String)in.readObject();
+							}while(!detailsCorrect && !(message.equalsIgnoreCase("exit")));
+						}
+					} while (!userLoggedIn && !(message.equalsIgnoreCase("exit")));
+					
+					sendMessage(commandList);
+					message = (String) in.readObject();
+					System.out.println(message);
+					
+					if(message.equalsIgnoreCase("1")) {
+						bugList.addBug(addBug());
+						sendMessage("Bug record added to database." + exitMessage);
+						message = "ok";
+					}else if(message.equalsIgnoreCase("3")) {
+						sendMessage(bugList.getAllUnassignedBugRecords() + exitMessage);
+					}else if(message.equalsIgnoreCase("4")) {
+						sendMessage(bugList.getAllBugRecords() + exitMessage);
+					}else if(!(message.equalsIgnoreCase("ok"))){
+						sendMessage("Unknown command." + exitMessage);
+					}
+					
+					if(!message.equalsIgnoreCase("exit")) message = (String) in.readObject();
+				
+				}while(!(message.equalsIgnoreCase("exit")));
+				
+				System.out.println("Client ended connection from " + clientSocket.getInetAddress());
+
+			} catch (Exception e) {
+				System.out.println("Error processing request from " + clientSocket.getRemoteSocketAddress());
+				e.printStackTrace();
+			}finally {
+				try {
+					
+					closeConnection();
+				} catch (Exception e) {
+					e.printStackTrace();
+				}
+			}
+		}
+		private Employee registerEmployee() {
+			Employee newEmployee = new Employee();
+			
+			try {
+				sendMessage("Enter full name of employee:");
+				message = (String) in.readObject();
+				newEmployee.setName(message);
+				
+				sendMessage("Enter employee ID:");
+				message = (String) in.readObject();
+				newEmployee.setEmpID(message);
+				
+				sendMessage("Enter email:");
+				message = (String) in.readObject();
+				newEmployee.setEmail(message);
+				
+				sendMessage("Enter password:");
+				message = (String) in.readObject();
+				newEmployee.setPassword(message);
+				
+				sendMessage("Enter department:");
+				message = (String) in.readObject();
+				newEmployee.setDepartment(message);
+			} catch (ClassNotFoundException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			} catch (IOException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+			return newEmployee;
+		}
+
+		//Close streams and client socket
+		public void closeConnection() throws Exception{
+			out.close();
+			in.close();
+			clientSocket.close();
+		}
+		
+		//Send/Read message methods
+		public void sendMessage(String msg) {
+			try {
+				out.writeObject(msg);
+				out.flush();
+			} catch (IOException e) {
+				e.printStackTrace();
+			}
+		}
+		
+		public void readMessage() {
+			try {
+				message = (String) in.readObject();
+			} catch (Exception e) {
+				e.printStackTrace();
+				try {
+					closeConnection();
+				} catch (Exception e1) {
+					// TODO Auto-generated catch block
+					e1.printStackTrace();
+				}
+			}
+		}
+		
+		//Add bug
+		public BugRecord addBug() {
+			BugRecord bug = new BugRecord();
+	
+			try {
+				sendMessage("Enter application name:");
+				message = (String) in.readObject();
+				bug.setApplicationName(message);
+				
+				bug.setDate(new Date());
+				
+				sendMessage("Platform:");
+				message = (String) in.readObject();
+				bug.setPlatform(message);
+				
+				sendMessage("Bug record description:");
+				message = (String) in.readObject();
+				bug.setDescription(message);
+				
+				sendMessage("Status:");
+				message = (String) in.readObject();
+				bug.setStatus(message);
+				
+				bug.setId("B" + new Random().nextInt(10000));
+				
+				sendMessage("Assign to employee ID:");
+				message = (String) in.readObject();
+				
+				if(message.equalsIgnoreCase(""))
+					message = "N/A";
+
+				bug.setAssignedToID(message);
+			} catch (ClassNotFoundException | IOException e) {
+				e.printStackTrace();
+			}
+			return bug;
+		}
+	}
+}
+

@@ -1,0 +1,24 @@
+package server;
+
+import java.util.List;
+
+public class BugTracker {
+	private List<Bug> bugsList;
+	private List<Employee> user;
+	
+	
+	public List<Bug> getBugsList() {
+		return bugsList;
+	}
+	public void setBugsList(List<Bug> bugsList) {
+		this.bugsList = bugsList;
+	}
+	public List<Employee> getUser() {
+		return user;
+	}
+	public void setUser(List<Employee> user) {
+		this.user = user;
+	}
+	
+	
+}

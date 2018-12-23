@@ -1,0 +1,82 @@
+package server;
+
+import java.io.BufferedReader;
+import java.io.File;
+import java.io.FileReader;
+import java.io.FileWriter;
+import java.io.IOException;
+import java.io.PrintWriter;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
+import java.util.ArrayList;
+import java.util.List;
+
+public class BugsData {
+	private List<Bug> bugData;
+	private File file = new File("bugRecords.dat");
+	
+	public BugsData() {
+		bugData = new ArrayList<>();
+		loadBugRecords();
+	}
+	// TODO Possibly need synchronization
+	//Add bug to bug list and write to file
+	public void addBug(Bug bug) {
+		bugData.add(bug);
+		writeToFile(bug);
+	}
+	// TODO Possible need for synchronization
+	//Load bug records from file 
+	private void loadBugRecords() {
+		BufferedReader br;
+		Bug bug;
+		try {
+			br = new BufferedReader(new FileReader(file));
+			String line;
+			while((line = br.readLine()) != null) {
+				bug = new Bug();
+				bug.setApplicationName(line);
+				bug.setDate(new SimpleDateFormat("E MMM dd HH:mm:ss zzz yyyy").parse(br.readLine()));
+				bug.setPlatform(br.readLine());
+				bug.setDescription(br.readLine());
+				bug.setStatus(br.readLine());
+				bug.setId(br.readLine());
+				bug.setAssignedToID(br.readLine());
+				bugData.add(bug);
+			}
+		} catch (IOException | ParseException e) {
+			e.printStackTrace();
+		}
+	}
+	// TODO Possible need for synchronization
+	//Write to file 
+	private void writeToFile(Bug bug){
+		try {
+			PrintWriter out = new PrintWriter(new FileWriter(file, true), true);
+			out.print(bug.toFile());
+			out.close();
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+	}
+	
+	//Return all bug records
+	public String getAllBugRecords() {
+		String divider = "----------------------------------------------";
+		String bugList = "All bugs in record:\n" + divider;
+		for(Bug b : bugData) {
+			bugList += b.toString() + "\n" + divider;
+		}
+		return bugList;
+	}
+	//Get all unassigned bugs 
+	public String getAllUnassignedBugRecords() {
+		String divider = "----------------------------------------------";
+		String bugList = "All unassigned bugs in record:\n" + divider;
+		for(Bug b : bugData) {
+			if(b.getAssignedToID().equalsIgnoreCase("N/A"))
+				bugList += b.toString() + "\n" + divider;
+		}
+		return bugList;
+	}
+}

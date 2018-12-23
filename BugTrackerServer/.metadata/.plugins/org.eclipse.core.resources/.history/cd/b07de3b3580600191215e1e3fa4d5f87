@@ -1,0 +1,45 @@
+package server;
+
+import java.io.IOException;
+import java.util.List;
+
+public class Register {
+
+	public Register(EmployeeData empList, ClientThread client) {
+		setNewEmployeeData(client);
+	}
+
+	private Employee setNewEmployeeData(ClientThread client) {
+		Employee newEmployee = new Employee();
+
+		try {
+			client.sendMessage("Enter full name of employee:");
+			newEmployee.setName(client.readMessage());
+
+			client.sendMessage("Enter employee ID:");
+			newEmployee.setEmpID(client.readMessage());
+
+			client.sendMessage("Enter email:");
+			newEmployee.setEmail(client.readMessage());
+
+			client.sendMessage("Enter password:");
+			newEmployee.setPassword(client.readMessage());
+
+			client.sendMessage("Enter department:");
+			newEmployee.setDepartment(client.readMessage());
+		} catch (Exception e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		return newEmployee;
+	}
+
+
+	public List<Employee> getRegisteredEmployeeList() {
+		return registeredEmployeeList;
+	}
+
+	public void setRegisteredEmployeeList(List<Employee> registeredEmployeeList) {
+		this.registeredEmployeeList = registeredEmployeeList;
+	}
+}

@@ -1,0 +1,26 @@
+package server;
+
+public class BugTracker {
+	private BugsData bugsData;
+	private EmployeeData empData;
+	
+	public BugTracker() {
+		this.bugsData = new BugsData();
+		this.empData = new EmployeeData();
+	}
+	
+	public BugsData getBugsList() {
+		return bugsData;
+	}
+	public void setBugsList(BugsData bugsData) {
+		this.bugsData = bugsData;
+	}
+	public EmployeeData getEmpList() {
+		return empData;
+	}
+	public void setEmpList(EmployeeData empData) {
+		this.empData = empData;
+	}
+	
+	
+}

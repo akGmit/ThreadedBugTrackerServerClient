@@ -1,0 +1,60 @@
+package server;
+
+import java.io.BufferedReader;
+import java.io.File;
+import java.io.FileReader;
+import java.io.IOException;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.List;
+
+
+public class BugList {
+	private List<BugRecord> bugRecords;
+	private File file = new File("bugRecords.dat");
+	
+	public BugList() {
+		bugRecords = new ArrayList<>();
+		loadEmployeeList();
+		
+		//for(Employee e : employeeList) {
+		//	System.out.println(e.getName() + " " + e.getEmpID() + " " + e.getEmail() + " " + e.getDepartment()+ " " + e.getAssignedBugId());
+		//}
+	}
+	
+	private void loadEmployeeList() {
+		BufferedReader br;
+		BugRecord bug;
+		try {
+			br = new BufferedReader(new FileReader(file));
+			String line;
+			while((line = br.readLine()) != null) {
+				bug = new BugRecord();
+				bug.setApplicationName(line);
+				
+				SimpleDateFormat formatter5=new SimpleDateFormat("E, MMM dd yyyy HH:mm:ss");
+				Date date;
+				try {
+					date = formatter5.parse(br.readLine());
+					bug.setDate(date);
+				} catch (ParseException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
+				
+				
+				bug.setPlatform(br.readLine());
+				bug.setDescription(br.readLine());
+				bug.setStatus(br.readLine());
+				bug.setId(br.readLine());
+				bugRecords.add(bug);
+			}
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		
+	}
+}

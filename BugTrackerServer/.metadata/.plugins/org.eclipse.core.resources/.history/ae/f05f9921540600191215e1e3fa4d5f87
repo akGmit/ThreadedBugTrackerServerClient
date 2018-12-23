@@ -1,0 +1,229 @@
+package server;
+
+import java.io.IOException;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
+import java.net.ServerSocket;
+import java.net.Socket;
+import java.util.Date;
+import java.util.Random;
+
+public class BugTrackerServer {
+
+	private ServerSocket ss;
+	private static final int SERVER_PORT = 10000;  
+	private volatile boolean keepRunning = true;
+	private EmployeeList employeeList = new EmployeeList();
+	private BugList bugList = new BugList();
+	
+	//Main method to start java application
+	public static void main(String[] args) {
+		new BugTrackerServer(); 
+	}
+
+	private BugTrackerServer(){
+		try {
+			ss = new ServerSocket(SERVER_PORT); //Start the server socket listening on port 8080
+			System.out.println("Server started and listening on port " + SERVER_PORT);
+			
+			while (keepRunning){ 
+				try { 
+					Socket s = ss.accept(); 
+					new Thread(new ClientThread(s)).start(); 
+				} catch (IOException e) { 
+					System.out.println("Error handling incoming request..." + e.getMessage());
+				}
+			}
+		} catch (IOException e) { 
+			System.out.println("Yikes! Something bad happened..." + e.getMessage());
+		}
+	}
+	
+	//Client thread
+	public class ClientThread implements Runnable{
+		ClientThread data = new ClientThread(false);
+
+		private ClientThread(Socket request) { 
+			this.data.clientSocket = request; 
+		}
+
+		public void run() {
+			String commandList = "Command list:\n1. Add bug\n2. Assign bug\n3. View not assigned bugs\n4. View all bugs\n5. Update bug record";
+			String exitMessage = "\n\nEnter \"exit\" to quit, or \"C\" to continue";
+			String tryAgainMessage = "\n\nEnter \"exit\" or \"c\" to try again.";
+			try{
+				//Read in the request from the remote computer to this programme. This process is called Deserialization or Unmarshalling
+				data.out = new ObjectOutputStream(data.clientSocket.getOutputStream());
+				data.out.flush();
+				data.in = new ObjectInputStream(data.clientSocket.getInputStream());
+				System.out.println("Client accepted from " + data.clientSocket.getInetAddress());
+				
+				do {		
+					//Login or register do while loop
+					if(!data.userLoggedIn) {
+						do {			
+							sendMessage("Welcome to Bug Tracker application.\nEnter command number to continue:\n1.Login\n2.Register");
+							data.message = (String) data.in.readObject();
+	
+							if(data.message.equalsIgnoreCase("1")) {
+								
+								data.userLoggedIn = new Login(employeeList.getEmployeList(), this).isLoggedIn();
+								
+							}else if(data.message.equalsIgnoreCase("2")) {
+								boolean detailsCorrect = false;
+								String registrationStatus;
+								
+								do {
+									registrationStatus = employeeList.addNewEmployee(registerEmployee());
+									if(registrationStatus.equalsIgnoreCase("Employee registered succesfully!")) {
+										data.userLoggedIn = true;
+										detailsCorrect = true;
+										sendMessage(registrationStatus + " Details " + detailsCorrect);
+									}else {
+										sendMessage(registrationStatus + tryAgainMessage);
+									}
+									data.message = (String)data.in.readObject();
+								}while(!detailsCorrect && !(data.message.equalsIgnoreCase("exit")));
+							}
+						} while (!data.userLoggedIn && !(data.message.equalsIgnoreCase("exit")));
+					}
+					
+					sendMessage(commandList);
+					data.message = (String) data.in.readObject();
+					System.out.println(data.message);
+					
+					////TEST==================
+					if(data.message.equalsIgnoreCase("99")) {
+						employeeList.server(this);
+						data.message = "ok";
+					}//=========================================
+					
+					if(data.message.equalsIgnoreCase("1")) {
+						bugList.addBug(addBug());
+						sendMessage("Bug record added to database." + exitMessage);
+						data.message = "ok";
+					}else if(data.message.equalsIgnoreCase("3")) {
+						sendMessage(bugList.getAllUnassignedBugRecords() + exitMessage);
+					}else if(data.message.equalsIgnoreCase("4")) {
+						sendMessage(bugList.getAllBugRecords() + exitMessage);
+					}else if(!(data.message.equalsIgnoreCase("ok"))){
+						sendMessage("Unknown command." + exitMessage);
+					}
+					
+					if(!data.message.equalsIgnoreCase("exit")) data.message = (String) data.in.readObject();
+				
+				}while(!(data.message.equalsIgnoreCase("exit")));
+				
+				System.out.println("Client ended connection from " + data.clientSocket.getInetAddress());
+
+			} catch (Exception e) {
+				System.out.println("Error processing request from " + data.clientSocket.getRemoteSocketAddress());
+				e.printStackTrace();
+			}finally {
+				try {
+					
+					closeConnection();
+				} catch (Exception e) {
+					e.printStackTrace();
+				}
+			}
+		}
+		private Employee registerEmployee() {
+			Employee newEmployee = new Employee();
+			
+			try {
+				sendMessage("Enter full name of employee:");
+				data.message = (String) data.in.readObject();
+				newEmployee.setName(data.message);
+				
+				sendMessage("Enter employee ID:");
+				data.message = (String) data.in.readObject();
+				newEmployee.setEmpID(data.message);
+				
+				sendMessage("Enter email:");
+				data.message = (String) data.in.readObject();
+				newEmployee.setEmail(data.message);
+				
+				sendMessage("Enter password:");
+				data.message = (String) data.in.readObject();
+				newEmployee.setPassword(data.message);
+				
+				sendMessage("Enter department:");
+				data.message = (String) data.in.readObject();
+				newEmployee.setDepartment(data.message);
+			} catch (ClassNotFoundException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			} catch (IOException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+			return newEmployee;
+		}
+
+		//Close streams and client socket
+		public void closeConnection() throws Exception{
+			data.out.close();
+			data.in.close();
+			data.clientSocket.close();
+		}
+		
+		//Send/Read message methods
+		public void sendMessage(String msg) {
+			try {
+				data.out.writeObject(msg);
+				data.out.flush();
+			} catch (IOException e) {
+				e.printStackTrace();
+			}
+		}
+		
+		public String readMessage() {
+			try {
+				data.message = (String) data.in.readObject();
+			} catch (Exception e) {
+				e.printStackTrace();
+			}
+			return data.message;
+		}
+		
+		//Add bug
+		public Bug addBug() {
+			Bug bug = new Bug();
+	
+			try {
+				sendMessage("Enter application name:");
+				data.message = (String) data.in.readObject();
+				bug.setApplicationName(data.message);
+				
+				bug.setDate(new Date());
+				
+				sendMessage("Platform:");
+				data.message = (String) data.in.readObject();
+				bug.setPlatform(data.message);
+				
+				sendMessage("Bug record description:");
+				data.message = (String) data.in.readObject();
+				bug.setDescription(data.message);
+				
+				sendMessage("Status:");
+				data.message = (String) data.in.readObject();
+				bug.setStatus(data.message);
+				
+				bug.setId("B" + new Random().nextInt(10000));
+				
+				sendMessage("Assign to employee ID:");
+				data.message = (String) data.in.readObject();
+				
+				if(data.message.equalsIgnoreCase(""))
+					data.message = "N/A";
+
+				bug.setAssignedToID(data.message);
+			} catch (ClassNotFoundException | IOException e) {
+				e.printStackTrace();
+			}
+			return bug;
+		}
+	}
+}
+

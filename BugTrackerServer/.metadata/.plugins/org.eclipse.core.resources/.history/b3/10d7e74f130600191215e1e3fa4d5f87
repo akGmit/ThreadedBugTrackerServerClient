@@ -1,0 +1,70 @@
+package server;
+
+import java.io.BufferedReader;
+import java.io.File;
+import java.io.FileReader;
+import java.io.FileWriter;
+import java.io.IOException;
+import java.io.PrintWriter;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
+import java.util.ArrayList;
+import java.util.List;
+
+public class BugList {
+	private List<BugRecord> bugRecords;
+	private File file = new File("bugRecords.dat");
+	
+	public BugList() {
+		bugRecords = new ArrayList<>();
+		loadBugRecords();
+		
+		//for(BugRecord b : bugRecords) {
+		//	System.out.println(b.getApplicationName() + " " + b.getDate() + " " + 
+		//				b.getPlatform() + "\n" + b.getDescription() + " " + b.getStatus() + " " + b.getId());
+		//}
+	}
+	
+	public void addBug(BugRecord bug) {
+		bugRecords.add(bug);
+	}
+	
+	private void loadBugRecords() {
+		BufferedReader br;
+		BugRecord bug;
+		try {
+			br = new BufferedReader(new FileReader(file));
+			String line;
+			while((line = br.readLine()) != null) {
+				bug = new BugRecord();
+				bug.setApplicationName(line);
+				bug.setDate(new SimpleDateFormat("E, MMM dd yyyy HH:mm:ss").parse(br.readLine()));
+				bug.setPlatform(br.readLine());
+				bug.setDescription(br.readLine());
+				bug.setStatus(br.readLine());
+				bug.setId(br.readLine());
+				bugRecords.add(bug);
+			}
+		} catch (IOException | ParseException e) {
+			e.printStackTrace();
+		}
+	}
+	
+	private void writeToFile(BugRecord bug){
+		try {
+			PrintWriter out = new PrintWriter(new FileWriter(file, true), true);
+			out.println(bug.toFile());
+			out.close();
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+	}
+	
+	public String getAllBugRecords() {
+		String bugList = "";
+		for(BugRecord b : bugRecords) {
+			bugList += b.toString();
+		}
+		return bugList;
+	}
+}

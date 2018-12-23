@@ -1,0 +1,19 @@
+package server;
+
+import java.util.List;
+
+public class Register {
+	private List<Employee> registeredEmployeeList;
+	
+	public Register(List<Employee> empList) {
+		registeredEmployeeList = empList;
+	}
+	
+	public List<Employee> getRegisteredEmployeeList() {
+		return registeredEmployeeList;
+	}
+
+	public void setRegisteredEmployeeList(List<Employee> registeredEmployeeList) {
+		this.registeredEmployeeList = registeredEmployeeList;
+	}
+}

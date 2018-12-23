@@ -1,0 +1,79 @@
+package server;
+
+
+public class Register {
+	private EmployeeData empList;
+	private String regStatus;
+	private boolean employeeDataValid;
+
+	public Register(EmployeeData empList, ClientThread client) {
+		this.empList = empList;
+		
+		Employee newEmployee = setNewEmployeeData(client);
+		isEmployeeValid(newEmployee);
+		if(isEmployeeDataValid())
+			registerEmployee(newEmployee);
+	}
+
+	private void registerEmployee(Employee newEmployee) {
+		empList.addNewEmployee(newEmployee);
+	}
+
+	private Employee setNewEmployeeData(ClientThread client) {
+		Employee newEmployee = new Employee();
+
+		try {
+			client.sendMessage("Enter full name of employee:");
+			newEmployee.setName(client.readMessage());
+
+			client.sendMessage("Enter employee ID:");
+			newEmployee.setEmpID(client.readMessage());
+
+			client.sendMessage("Enter email:");
+			newEmployee.setEmail(client.readMessage());
+
+			client.sendMessage("Enter password:");
+			newEmployee.setPassword(client.readMessage());
+
+			client.sendMessage("Enter department:");
+			newEmployee.setDepartment(client.readMessage());
+		} catch (Exception e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		return newEmployee;
+	}
+
+	//Check if required details are unique
+	private void isEmployeeValid(Employee emp) {
+		for(Employee e : this.empList.getEmployeList()) {
+			if(e.getEmail().equalsIgnoreCase(emp.getEmail())) {
+				this.regStatus = "Error. Email already exists.";
+				setEmployeeDataValid(false);
+				return;
+			}else if(e.getEmpID().equalsIgnoreCase(emp.getEmpID())) {
+				setRegStatus("Error. Employee ID already exists.");
+				setEmployeeDataValid(false);
+				return;
+			}
+		}
+		setRegStatus("Registration succesfull.");
+	}
+	
+	public String getRegStatus() {
+		return regStatus;
+	}
+
+	public void setRegStatus(String regStatus) {
+		this.regStatus = regStatus;
+	}
+
+	public boolean isEmployeeDataValid() {
+		return employeeDataValid;
+	}
+
+	public void setEmployeeDataValid(boolean employeeDataValid) {
+		this.employeeDataValid = employeeDataValid;
+	}
+
+}

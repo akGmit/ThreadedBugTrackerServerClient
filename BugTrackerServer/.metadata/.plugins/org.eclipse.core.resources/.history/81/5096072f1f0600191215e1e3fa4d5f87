@@ -1,0 +1,75 @@
+package server;
+
+import java.util.Date;
+
+public class BugRecord {
+	private String applicationName;
+	private Date date;
+	private String platform;
+	private String description;
+	private String status;
+	private String id;
+	private String assignedToID = "Not Assigned";
+	
+	
+	//Setters
+	//Getters
+	public String getApplicationName() {
+		return applicationName;
+	}
+	public void setApplicationName(String applicationName) {
+		this.applicationName = applicationName;
+	}
+	public Date getDate() {
+		return date;
+	}
+	public void setDate(Date date) {
+		this.date = date;
+	}
+	public String getPlatform() {
+		return platform;
+	}
+	public void setPlatform(String platform) {
+		this.platform = platform;
+	}
+	public String getDescription() {
+		return description;
+	}
+	public void setDescription(String description) {
+		this.description = description;
+	}
+	public String getStatus() {
+		return status;
+	}
+	public void setStatus(String status) {
+		this.status = status;
+	}
+	public String getId() {
+		return id;
+	}
+	public void setId(String id) {
+		this.id = id;
+	}
+	
+	public String getAssignedToID() {
+		return assignedToID;
+	}
+	public void setAssignedToID(String assignedToID) {
+		this.assignedToID = assignedToID;
+	}
+	
+	public String toFile() {
+		String bug;
+		bug = String.format("\n%s\n%s\n%s\n%s\n%s\n%s\n%s", 
+				getApplicationName(), getDate(), getPlatform(), getDescription(), getStatus(), getId(), getAssignedToID());
+		return bug;
+	}
+	
+	public String toString() {
+		String bug;
+		bug = String.format("\n%17s %s \n%-17s %s \n%-17s %s\n%-17s %s\n%-17s %s\n%-17s %s\n%-17s %s", "Application name:",
+				getApplicationName(), "Date:", getDate(),"Platform:", getPlatform(), 
+					"Description:", getDescription(), "Status:", getStatus(), "Bug ID:", getId(), "Assigned to:", getAssignedToID());
+		return bug;
+	}
+}
