@@ -63,4 +63,13 @@ public class EmployeeData {
 	public void setEmployeList(List<Employee> employeList) {
 		this.employeeList = employeList;
 	}
+	
+	public String getAllEmployees() {
+		String divider = "----------------------------------------------";
+		String empList = "Registered employees:\n" + divider;
+		for(Employee e : employeeList) {
+			empList += e.toString() + "\n" + divider;
+		}
+		return empList;
+	}
 }

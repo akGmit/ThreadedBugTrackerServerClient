@@ -63,6 +63,45 @@ public class BugTracker {
 		return true;
 	}
 	
+	//Assign bug to employee
+	public String assignBugToEmployee(String bugID, String empID) {
+		Bug bug = findBugByID(bugID);
+		Employee emp = findEmployeeByID(empID);
+		String result;
+		
+		if(bug == null) {
+			result = "No such bug ID.";
+		}else if(emp == null){
+			result = "No such employee ID.";
+		}else {
+			bug.setAssignedToID(empID);
+			emp.setAssignedBugId(bugID);
+			result = "Bug " + bugID + " assigned to employee " + empID;
+		}
+		return result;
+	}
+	
+	private Bug findBugByID(String bugID) {
+		Bug bug = null;
+		for(Bug b : bugsData.getBugsData()) {
+			if(b.getId().equalsIgnoreCase(bugID)) {
+				bug = b;
+			}
+		}
+		
+		return bug;
+	}
+	
+	private Employee findEmployeeByID(String empID) {
+		Employee emp = null;
+		for(Employee e : empData.getEmployeList()) {
+			if(e.getEmpID().equalsIgnoreCase(empID)) {
+				emp = e;
+			}
+		}
+		return emp;
+	}
+	
 	public BugsData getBugsList() {
 		return bugsData;
 	}

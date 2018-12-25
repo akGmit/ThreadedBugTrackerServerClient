@@ -55,10 +55,10 @@ public class Employee {
 	}
 	
 	public String toString() {
-		String bug;
-		bug = String.format("\n%17s %s \n%-17s %s \n%-17s %s\n%-17s %s\n%-17s %s", "Employee name:",
+		String emp;
+		emp = String.format("\n%17s %s \n%-17s %s \n%-17s %s\n%-17s %s\n%-17s %s", "Employee name:",
 				getName(), "Employee ID:", getEmpID(),"Employee email:", getEmail(), 
 					"Department:", getDepartment(), "Assigned Bug:", getAssignedBugId());
-		return bug;
+		return emp;
 	}
 }

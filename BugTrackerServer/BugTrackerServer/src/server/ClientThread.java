@@ -18,9 +18,9 @@ public class ClientThread implements Runnable{
 	private String tryAgainMessage = "\n\nEnter \"exit\" or \"c\" to try again.";
 	private String continueMessage = "\nPress enter to continue.";
 
-	public ClientThread(Socket request) { 
+	public ClientThread(Socket request, BugTracker bugTracker) { 
 		this.clientSocket = request;
-		this.bugTracker = new BugTracker();
+		this.bugTracker = bugTracker;
 	}
 
 	public void run() {
@@ -43,6 +43,15 @@ public class ClientThread implements Runnable{
 					sendMessage(bugTracker.setBugRecord(this) + continueMessage);
 					//message = (String)in.readObject();
 					message = "ok";
+				}else if(message.equalsIgnoreCase("2")) {
+					sendMessage(bugTracker.getBugsList().getAllUnassignedBugRecords() + "\nEnter bug ID to assign:");
+					String bugID = (String) in.readObject();
+					
+					sendMessage(bugTracker.getEmpList().getAllEmployees() + "\nEnter employee id to assign " + bugID+ "bug");
+					String empID = (String) in.readObject();
+					
+					sendMessage(bugTracker.assignBugToEmployee(bugID, empID) + continueMessage);
+					
 				}else if(message.equalsIgnoreCase("3")) {
 					sendMessage(bugTracker.getBugsList().getAllUnassignedBugRecords() + exitMessage);
 				}else if(message.equalsIgnoreCase("4")) {
