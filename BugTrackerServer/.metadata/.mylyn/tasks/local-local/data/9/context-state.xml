@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ContextState>
+<org.eclipse.mylyn.context.ui.editors>
+<MonitoredWindowOpenEditors class="org.eclipse.ui.internal.WorkbenchWindow" isActive="true" isLaunching="true" number="0">
+<editor id="org.eclipse.jdt.ui.CompilationUnitEditor" name="BugTracker.java" partName="BugTracker.java" title="BugTracker.java" tooltip="BugTrackerServer/src/server/BugTracker.java">
+<input factoryID="org.eclipse.ui.part.FileEditorInputFactory" path="/BugTrackerServer/src/server/BugTracker.java"/>
+<editorState selectionHorizontalPixel="0" selectionLength="0" selectionOffset="1967" selectionTopPixel="594"/>
+</editor>
+<editor id="org.eclipse.jdt.ui.CompilationUnitEditor" name="ClientThread.java" partName="ClientThread.java" title="ClientThread.java" tooltip="BugTrackerServer/src/server/ClientThread.java">
+<input factoryID="org.eclipse.ui.part.FileEditorInputFactory" path="/BugTrackerServer/src/server/ClientThread.java"/>
+<editorState selectionHorizontalPixel="0" selectionLength="0" selectionOffset="854" selectionTopPixel="348"/>
+</editor>
+<editor id="org.eclipse.jdt.ui.CompilationUnitEditor" name="Register.java" partName="Register.java" title="Register.java" tooltip="BugTrackerServer/src/server/Register.java">
+<input factoryID="org.eclipse.ui.part.FileEditorInputFactory" path="/BugTrackerServer/src/server/Register.java"/>
+<editorState selectionHorizontalPixel="0" selectionLength="0" selectionOffset="1056" selectionTopPixel="0"/>
+</editor>
+<editor id="org.eclipse.jdt.ui.CompilationUnitEditor" name="EmployeeData.java" partName="EmployeeData.java" title="EmployeeData.java" tooltip="BugTrackerServer/src/server/EmployeeData.java">
+<input factoryID="org.eclipse.ui.part.FileEditorInputFactory" path="/BugTrackerServer/src/server/EmployeeData.java"/>
+<editorState selectionHorizontalPixel="0" selectionLength="0" selectionOffset="512" selectionTopPixel="0"/>
+</editor>
+<editor id="org.eclipse.jdt.ui.CompilationUnitEditor" name="BugsData.java" partName="BugsData.java" title="BugsData.java" tooltip="BugTrackerServer/src/server/BugsData.java">
+<input factoryID="org.eclipse.ui.part.FileEditorInputFactory" path="/BugTrackerServer/src/server/BugsData.java"/>
+<editorState selectionHorizontalPixel="0" selectionLength="0" selectionOffset="1672" selectionTopPixel="297"/>
+</editor>
+<editor id="org.eclipse.jdt.ui.CompilationUnitEditor" name="BugTrackerServer.java" partName="BugTrackerServer.java" title="BugTrackerServer.java" tooltip="BugTrackerServer/src/server/BugTrackerServer.java">
+<input factoryID="org.eclipse.ui.part.FileEditorInputFactory" path="/BugTrackerServer/src/server/BugTrackerServer.java"/>
+<editorState selectionHorizontalPixel="0" selectionLength="16" selectionOffset="141" selectionTopPixel="0"/>
+</editor>
+<editor id="org.eclipse.jdt.ui.CompilationUnitEditor" name="Employee.java" partName="Employee.java" title="Employee.java" tooltip="BugTrackerServer/src/server/Employee.java">
+<input factoryID="org.eclipse.ui.part.FileEditorInputFactory" path="/BugTrackerServer/src/server/Employee.java"/>
+<editorState selectionHorizontalPixel="0" selectionLength="0" selectionOffset="1480" selectionTopPixel="139"/>
+</editor>
+</MonitoredWindowOpenEditors>
+</org.eclipse.mylyn.context.ui.editors>
+</ContextState>

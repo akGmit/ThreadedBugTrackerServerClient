@@ -78,9 +78,11 @@ public class BugTracker {
 			emp.setAssignedBugId(bugID);
 			result = "Bug " + bugID + " assigned to employee " + empID;
 		}
+		
+		bugsData.updateFile();
 		return result;
 	}
-	
+	//Find bug by id
 	private Bug findBugByID(String bugID) {
 		Bug bug = null;
 		for(Bug b : bugsData.getBugsData()) {
@@ -100,6 +102,47 @@ public class BugTracker {
 			}
 		}
 		return emp;
+	}
+	
+	public String updateBugRecord(ClientThread client, String bugID) {
+		Bug bug = findBugByID(bugID);
+		String result = "";
+		String updateCommandList = "Command list:\n1. Update bug status.\n2. Append to problem description.\n3. Change assigned user.";
+		String message;
+		
+		if(bug == null) {
+			result = "No such bug ID.";
+		}else {
+			do {
+				client.sendMessage(updateCommandList);
+				message = client.readMessage();
+				
+				if(message.equalsIgnoreCase("1")) {
+					client.sendMessage("Enter new status:");
+					String status = client.readMessage();
+					bug.setStatus(status);
+					bugsData.updateFile();
+					result = "Bug status changed to " + status;
+					message = "valid";
+				}else if(message.equalsIgnoreCase("2")) {
+					client.sendMessage("Enter problem description to append:");
+					String probDescription = client.readMessage();
+					bug.setDescription(bug.getDescription() + ". " + probDescription);
+					bugsData.updateFile();
+					result = "Bug description appended to existing one.";
+					message = "valid";
+				}else if(message.equalsIgnoreCase("3")) {
+					client.sendMessage("Enter user id to assign bug:");
+					String userID = client.readMessage();
+					bug.setAssignedToID(userID);
+					bugsData.updateFile();
+					result = "Bug " + bug.getId() + " assigned to " + userID;
+					message = "valid";
+				}
+			} while (!(message.equalsIgnoreCase("valid")) && !(message.equalsIgnoreCase("exit")));
+		}
+		
+		return result;
 	}
 	
 	public BugsData getBugsList() {

@@ -35,27 +35,33 @@ public class ClientThread implements Runnable{
 				//Login or register do while loop
 				auth();
 				
-				sendMessage(commandList);
-				message = (String) in.readObject();
-				System.out.println(message);
+				if(!(message.equalsIgnoreCase("exit"))) {
+					sendMessage(commandList);
+					message = (String) in.readObject();
+					System.out.println(message);
+				}
 
 				if(message.equalsIgnoreCase("1")) {
 					sendMessage(bugTracker.setBugRecord(this) + continueMessage);
-					//message = (String)in.readObject();
 					message = "ok";
 				}else if(message.equalsIgnoreCase("2")) {
 					sendMessage(bugTracker.getBugsList().getAllUnassignedBugRecords() + "\nEnter bug ID to assign:");
 					String bugID = (String) in.readObject();
-					
+
 					sendMessage(bugTracker.getEmpList().getAllEmployees() + "\nEnter employee id to assign " + bugID+ "bug");
 					String empID = (String) in.readObject();
-					
+
 					sendMessage(bugTracker.assignBugToEmployee(bugID, empID) + continueMessage);
-					
+
 				}else if(message.equalsIgnoreCase("3")) {
 					sendMessage(bugTracker.getBugsList().getAllUnassignedBugRecords() + exitMessage);
 				}else if(message.equalsIgnoreCase("4")) {
 					sendMessage(bugTracker.getBugsList().getAllBugRecords() + exitMessage);
+				}else if(message.equalsIgnoreCase("5")) {
+					sendMessage(bugTracker.getBugsList().getAllBugRecords() + "/nEnter bug ID to update record:" );
+					String bugID = (String)in.readObject();
+
+					sendMessage(bugTracker.updateBugRecord(this, bugID) + continueMessage);
 				}else if(!(message.equalsIgnoreCase("ok"))){
 					sendMessage("Unknown command." + exitMessage);
 				}
@@ -64,16 +70,15 @@ public class ClientThread implements Runnable{
 
 			}while(!(message.equalsIgnoreCase("exit")));
 
-			System.out.println("Client ended connection from " + clientSocket.getInetAddress());
+			//System.out.println("Client ended connection from " + clientSocket.getInetAddress());
 
 		} catch (Exception e) {
-			System.out.println("Error processing request from " + clientSocket.getRemoteSocketAddress());
-			e.printStackTrace();
+			
 		}finally {
 			try {
 				closeConnection();
 			} catch (Exception e) {
-				e.printStackTrace();
+				System.out.println("herer");
 			}
 		}
 	}
@@ -107,6 +112,7 @@ public class ClientThread implements Runnable{
 
 	//Close streams and client socket
 	public void closeConnection() throws Exception{
+		System.out.println("Client ended connection from " + clientSocket.getInetAddress());
 		out.close();
 		in.close();
 		clientSocket.close();
@@ -118,7 +124,7 @@ public class ClientThread implements Runnable{
 			out.writeObject(msg);
 			out.flush();
 		} catch (IOException e) {
-			e.printStackTrace();
+			System.out.println("Closed at sendmessage");
 		}
 	}
 
@@ -126,7 +132,7 @@ public class ClientThread implements Runnable{
 		try {
 			message = (String) in.readObject();
 		} catch (Exception e) {
-			e.printStackTrace();
+			System.out.println("Closed at readMEssage");
 		}
 		return message;
 	}
