@@ -5,17 +5,22 @@ public class Register {
 	private String regStatus;
 	private boolean employeeDataValid;
 
-	public Register(EmployeeData empData, ClientThread client) {
+	public Register(EmployeeData empData) {
 		this.empData = empData;
-		
-		Employee newEmployee = setNewEmployeeData(client);
-		isEmployeeValid(newEmployee);
-		if(isEmployeeDataValid())
-			registerEmployee(newEmployee);
 	}
 
-	private void registerEmployee(Employee newEmployee) {
-		empData.addNewEmployee(newEmployee);
+	public void registerEmployee(ClientThread client) {
+		
+		Employee newEmployee = setNewEmployeeData(client);
+		
+		isEmployeeValid(newEmployee);
+		
+		if(isEmployeeDataValid())
+			addNewEmployee(newEmployee);
+	}
+	
+	private synchronized void addNewEmployee(Employee emp) {
+		empData.addNewEmployee(emp);
 	}
 
 	private Employee setNewEmployeeData(ClientThread client) {
@@ -44,7 +49,7 @@ public class Register {
 	}
 
 	//Check if required details are unique
-	private void isEmployeeValid(Employee emp) {
+	private synchronized void isEmployeeValid(Employee emp) {
 		for(Employee e : this.empData.getEmployeList()) {
 			if(e.getEmail().equalsIgnoreCase(emp.getEmail())) {
 				this.regStatus = "Error. Email already exists.";

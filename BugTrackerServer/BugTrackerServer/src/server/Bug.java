@@ -1,6 +1,8 @@
 package server;
 
 import java.util.Date;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
 
 public class Bug {
 	private String applicationName;
@@ -10,6 +12,7 @@ public class Bug {
 	private String status;
 	private String id;
 	private String assignedToID;
+	private Lock lock = new ReentrantLock();
 	
 	
 	//Setters
@@ -56,6 +59,19 @@ public class Bug {
 	}
 	public void setAssignedToID(String assignedToID) {
 		this.assignedToID = assignedToID;
+	}
+	
+	//Lock methods for disabling concurrent editing of a bug
+	public void lockBug() {
+		lock.lock();
+	}
+	
+	public void unlockBug() {
+		lock.unlock();
+	}
+	
+	public boolean tryLock() {
+		return lock.tryLock();
 	}
 	
 	public String toFile() {

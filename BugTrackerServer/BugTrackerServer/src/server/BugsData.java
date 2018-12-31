@@ -62,12 +62,6 @@ public class BugsData {
 	//TODO Synnchronization
 	//Rewrite file with new records after assignment
 	public void updateFile() {
-		try {
-			wait();
-		} catch (InterruptedException e1) {
-			// TODO Auto-generated catch block
-			e1.printStackTrace();
-		}
 		file.delete();
 		try {
 			file.createNewFile();
