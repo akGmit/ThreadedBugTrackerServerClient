@@ -1,3 +1,8 @@
+//Class representing employee records data
+//Deals with data file functions
+//Reading from records data file
+//Writing to data file
+
 package server;
 
 import java.io.BufferedReader;
@@ -45,7 +50,7 @@ public class EmployeeData {
 		writeToFile(emp);
 	}
 	
-	
+	//Write to employee records file
 	private void writeToFile(Employee emp){
 		try {
 			PrintWriter out = new PrintWriter(new FileWriter(file, true), true);

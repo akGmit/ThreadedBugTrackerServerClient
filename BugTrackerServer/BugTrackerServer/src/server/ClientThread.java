@@ -1,3 +1,7 @@
+//ClientThread class implementing Runnable interface
+//This class instances represents individual client connections
+//Constructor takes Socket object for establishing connection
+//And BugTracker object shared among all client threads
 package server;
 
 import java.io.IOException;
@@ -12,40 +16,51 @@ public class ClientThread implements Runnable{
 	private String message;
 	boolean userLoggedIn = false;
 	private BugTracker bugTracker;
+	
 	//Informational messages
-	private String commandList = "Command list:\n1. Add bug\n2. Assign bug\n3. View not assigned bugs\n4. View all bugs\n5. Update bug record";
-	private String exitMessage = "\n\nEnter \"exit\" to quit, or \"C\" to continue";
-	private String tryAgainMessage = "\n\nEnter \"exit\" or \"c\" to try again.";
+	private String commandList = "Command list:\n1. Add bug\n2. Assign bug\n3. View not assigned bugs\n4. View all bugs\n5. Update bug record\nEnter \"exit\" to quit.";
 	private String continueMessage = "\nPress enter to continue.";
-
+	private String exitMessage = "\nEnter \"exit\" to quit";
+	
+	//Constructor
 	public ClientThread(Socket request, BugTracker bugTracker) { 
 		this.clientSocket = request;
 		this.bugTracker = bugTracker;
 	}
-
+	
+	//Runnable interface method run for thread
+	//Instantiating output/input streams
+	//Do/while loop for dealing with message passing between server and client
 	public void run() {
-
 		try{
 			out = new ObjectOutputStream(clientSocket.getOutputStream());
 			out.flush();
 			in = new ObjectInputStream(clientSocket.getInputStream());
 			System.out.println("Client accepted from " + clientSocket.getInetAddress());
-
+					
+			//Main do while loop for server/client communication until stopped
 			do {		
-				//Login or register do while loop
+				
+				//Call to method for authorization check
 				auth();
 				
-				
+				//Main menu 
 				if(!(message.equalsIgnoreCase("exit"))) {
 					sendMessage(commandList);
 					message = (String) in.readObject();
 					System.out.println(message);
 				}
-
+				
+				//If/else statement dealing with client requested functions
+				//Depending on clients response, operations are delegated to BugTracker class object for further communicator
+				//----
+				//Add bug 
 				if(message.equalsIgnoreCase("1")) {
 					sendMessage(bugTracker.setBugRecord(this) + continueMessage);
 					message = "ok";
+				//Assign bug
 				}else if(message.equalsIgnoreCase("2")) {
+					
 					sendMessage(bugTracker.getBugsList().getAllUnassignedBugRecords() + "\nEnter bug ID to assign:");
 					String bugID = (String) in.readObject();
 
@@ -53,19 +68,26 @@ public class ClientThread implements Runnable{
 					String empID = (String) in.readObject();
 
 					sendMessage(bugTracker.assignBugToEmployee(bugID, empID) + continueMessage);
-					
-
+				
+				//View not assigned bugs
 				}else if(message.equalsIgnoreCase("3")) {
-					sendMessage(bugTracker.getBugsList().getAllUnassignedBugRecords() + exitMessage);
+					
+					sendMessage(bugTracker.getBugsList().getAllUnassignedBugRecords() + continueMessage);
+				
+				//View all bugs
 				}else if(message.equalsIgnoreCase("4")) {
-					sendMessage(bugTracker.getBugsList().getAllBugRecords() + exitMessage);
+					
+					sendMessage(bugTracker.getBugsList().getAllBugRecords() + continueMessage);
+				
+				//Update bug record
 				}else if(message.equalsIgnoreCase("5")) {
-					sendMessage(bugTracker.getBugsList().getAllBugRecords() + "/nEnter bug ID to update record:" );
+					
+					sendMessage(bugTracker.getBugsList().getAllBugRecords() + "\nEnter bug ID to update record:" );
 					String bugID = (String)in.readObject();
 
 					sendMessage(bugTracker.updateBugRecord(this, bugID) + continueMessage);
 				}else if(!(message.equalsIgnoreCase("ok"))){
-					sendMessage("Unknown command." + exitMessage);
+					sendMessage("Unknown command." + continueMessage);
 				}
 
 				if(!message.equalsIgnoreCase("exit")) message = (String) in.readObject();
@@ -81,11 +103,14 @@ public class ClientThread implements Runnable{
 			closeConnection();
 		}
 	}
-
+	
+	//Method for client authorization or registration
+	//If instance variable userLogged in is false
+	//Client will be prompted for Login or Registration options
 	private void auth() throws Exception{
 		if(!userLoggedIn) {
 			do {			
-				sendMessage("Welcome to Bug Tracker application.\nEnter command number to continue:\n1.Login\n2.Register");
+				sendMessage("Command list:\n1.Login\n2.Register" + exitMessage);
 				message = (String) in.readObject();
 
 				if(message.equalsIgnoreCase("1")) {

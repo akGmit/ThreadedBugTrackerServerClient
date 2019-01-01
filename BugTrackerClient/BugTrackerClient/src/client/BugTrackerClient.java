@@ -1,3 +1,4 @@
+//Client application
 package client;
 
 import java.io.IOException;
@@ -18,13 +19,18 @@ public class BugTrackerClient {
 		input = new Scanner(System.in);	
 		input.useDelimiter("\n");
 		try { 
+			//Get 
 			System.out.println("Enter IP address of a server: ");
+			//String serverIP = input.next();
+			//requestSocket = new Socket(serverIP, SERVER_PORT);
 			requestSocket = new Socket("localhost", SERVER_PORT); 
-
+			
+			//Output/input streams
 			out = new ObjectOutputStream(requestSocket.getOutputStream());
 			out.flush(); 
 			in = new ObjectInputStream(requestSocket.getInputStream());
-			
+			System.out.println("Connected to BugTracker application server.");
+			//Main do while loop for sending end recieving messsages from server
 			do {
 				message = (String) in.readObject();
 				System.out.println(message);
@@ -33,7 +39,7 @@ public class BugTrackerClient {
 				sendMessage(message);				
 			} while (!(message.equalsIgnoreCase("exit")));
 
-		} catch (Exception e) { //Deal with the error here. A try/catch stops a programme crashing on error  
+		} catch (Exception e) { 
 			e.printStackTrace();
 		}finally {
 			try {
@@ -45,7 +51,7 @@ public class BugTrackerClient {
 			}
 		}
 	}
-	
+	//Send message to server method
 	void sendMessage(String msg) {
 		try {
 			out.writeObject(msg);
@@ -57,7 +63,7 @@ public class BugTrackerClient {
 	
 	public static void main(String[] args) {
 		new BugTrackerClient().run();
-		System.out.println("Main method will return now....");
+		System.out.println("BugTracker client closed.");
 	}
 }
 

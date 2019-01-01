@@ -1,3 +1,8 @@
+//Class representing bug records data
+//Deals with data file functions
+//Reading from records data file
+//Writing to data file
+
 package server;
 
 import java.io.BufferedReader;
@@ -19,14 +24,17 @@ public class BugsData {
 		bugsData = new ArrayList<>();
 		loadBugRecords();
 	}
-	// TODO Possibly need synchronization
+	
 	//Add bug to bug list and write to file
 	public void addBug(Bug bug) {
 		bugsData.add(bug);
 		writeToFile(bug);
 	}
-	// TODO Possible need for synchronization
-	//Load bug records from file 
+
+	//Load bug records from file
+	//Read bugRecords.dat file and populate list from file
+	//Using BufferedReader object with a FileReader object as parameter to read from file
+	//Each line in record represents Bug class information
 	private void loadBugRecords() {
 		BufferedReader br;
 		Bug bug;
@@ -48,8 +56,8 @@ public class BugsData {
 			e.printStackTrace();
 		}
 	}
-	// TODO Possible need for synchronization
-	//Write to file 
+	
+	//Append to file 
 	private void writeToFile(Bug bug){
 		try {
 			PrintWriter out = new PrintWriter(new FileWriter(file, true), true);
@@ -59,8 +67,10 @@ public class BugsData {
 			e.printStackTrace();
 		}
 	}
-	//TODO Synnchronization
+	
 	//Rewrite file with new records after assignment
+	//Delete current file
+	//Create new file and populate from bugsData list
 	public void updateFile() {
 		file.delete();
 		try {
@@ -83,6 +93,7 @@ public class BugsData {
 		}
 		return bugList;
 	}
+	
 	//Get all unassigned bugs 
 	public String getAllUnassignedBugRecords() {
 		String divider = "----------------------------------------------";
@@ -93,6 +104,7 @@ public class BugsData {
 		}
 		return bugList;
 	}
+	//Getters/Setters
 	public List<Bug> getBugsData() {
 		return bugsData;
 	}

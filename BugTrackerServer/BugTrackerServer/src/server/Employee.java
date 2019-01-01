@@ -1,3 +1,4 @@
+//Employee class representing employee record
 package server;
 
 public class Employee {

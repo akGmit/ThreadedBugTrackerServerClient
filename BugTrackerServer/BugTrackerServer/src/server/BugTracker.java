@@ -1,3 +1,7 @@
+//BugTracker class - main class for application functions
+//Holds bug records and employee data
+//This class is instantiated when server is started and is shared among all client threads
+//Most of synchronization is dealt with in this class
 package server;
 
 import java.util.Date;
@@ -7,7 +11,12 @@ public class BugTracker {
 	private BugsData bugsData;
 	private EmployeeData empData;
 	private Register register;
-
+	
+	//Constructor
+	//Creates instances of :
+	//	BugsData containing all bug records
+	//	EmployeeData containing all employee records
+	// 	Register for new user registration, validation and recording to employee data file
 	public BugTracker() {
 		this.bugsData = new BugsData();
 		this.empData = new EmployeeData();
@@ -15,6 +24,10 @@ public class BugTracker {
 	}
 
 	//Create bug record
+	//Method for creating new bug
+	//Receives ClientThread as parameter and prompts user for required information
+	//Using date object for date stamp
+	//Using Random class to generate bug id
 	public String setBugRecord(ClientThread client) {
 		Bug bug = new Bug();
 
@@ -35,7 +48,7 @@ public class BugTracker {
 
 			bug.setId("B" + new Random().nextInt(100000));
 
-			client.sendMessage("Assign to employee ID:");
+			client.sendMessage("Assign to employee ID (press Enter if not assigning):");
 			String assigned = client.readMessage();
 
 			if(assigned.equalsIgnoreCase("")) {
@@ -46,13 +59,15 @@ public class BugTracker {
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
-
+		
 		addBug(bug);
 		
 		return "Bug added to databse.";
 	}
 
 	//Add bug to bugs database
+	//Synchronized method to delegate bug adding to BugsData object
+	//If statement for checking if bug id is unique
 	private synchronized void addBug(Bug bug) {
 		if(isBugIdUniqe(bug)) {
 			bugsData.addBug(bug);
@@ -60,6 +75,9 @@ public class BugTracker {
 	}
 
 	//Recursive check and set for unique Bug ID
+	//Will call itself recursively and check if bug id is unique
+	//If not - using Random class to generate random bug id
+	//Returns true if bug id is unique
 	private boolean isBugIdUniqe(Bug bug) {
 		for(Bug b : bugsData.getBugsData()) {
 			if(b.getId().equalsIgnoreCase(bug.getId())) {
@@ -71,6 +89,9 @@ public class BugTracker {
 	}
 
 	//Assign bug to employee
+	//Takes bug id and employee id as parameters
+	//Creates two new Bug and Employee objects
+	//Deals with invalid information and synchronization in if/else if statement
 	public String assignBugToEmployee(String bugID, String empID) {
 		Bug bug = findBugByID(bugID);
 		Employee emp = findEmployeeByID(empID);
@@ -97,6 +118,7 @@ public class BugTracker {
 	}
 
 	//Find bug by id
+	//Traverse bugsData list for passed bug id and return it
 	private Bug findBugByID(String bugID) {
 		Bug bug = null;
 		for(Bug b : bugsData.getBugsData()) {
@@ -108,6 +130,7 @@ public class BugTracker {
 	}
 
 	//Find employee by id
+	//Traverse empData list for passed bug id and return it
 	private Employee findEmployeeByID(String empID) {
 		Employee emp = null;
 		for(Employee e : empData.getEmployeList()) {
@@ -119,6 +142,9 @@ public class BugTracker {
 	}
 
 	//Update bug record
+	//Takes ClientThread and bug id as parameters
+	//Finds bug by id
+	//If else statement deals with not found bug and synchronization
 	public String updateBugRecord(ClientThread client, String bugID) {
 		Bug bug = findBugByID(bugID);
 		String result = "";
@@ -128,6 +154,11 @@ public class BugTracker {
 		
 		if(bug == null) {
 			result = "No such bug ID.";
+		
+		//If bug is found
+		//Try to lock it, if lock can be obtained
+		//Update bug functions are displayed and according operations performed
+		//Try/catch/finally statement to release lock on bug if any exception happens
 		}else if(bug.tryLock()){		
 			try {
 				do {
@@ -170,7 +201,12 @@ public class BugTracker {
 		return result;
 	}
 	
-	//***********REGISTER**********************
+	//Synchronized method for updating BugsData instance containing all bug records
+	private synchronized void updateBugFile() {
+		bugsData.updateFile();
+	}
+	
+	//Register function methods
 	public void registerNewEmployee(ClientThread client) {
 		register.registerEmployee(client);
 	}
@@ -183,10 +219,8 @@ public class BugTracker {
 		return register.getRegStatus();
 	}
 	
-	private synchronized void updateBugFile() {
-		bugsData.updateFile();
-	}
-
+	
+	//Gettters/Setters
 	public BugsData getBugsList() {
 		return bugsData;
 	}
