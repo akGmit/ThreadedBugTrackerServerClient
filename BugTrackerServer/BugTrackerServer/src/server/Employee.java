@@ -8,7 +8,8 @@ public class Employee {
 	private String password;
 	private String department;
 	private String assignedBugId = "N/A";
-	
+	private boolean isLoggedIn;
+
 	//Setters
 	//Getters
 	public String getName() {
@@ -48,6 +49,13 @@ public class Employee {
 		this.assignedBugId = assignedBugId;
 	}
 	
+	public boolean isLoggedIn() {
+		return isLoggedIn;
+	}
+	public void setLoggedIn(boolean isLoggedIn) {
+		this.isLoggedIn = isLoggedIn;
+	}		
+
 	public String toFile() {
 		String emp;
 		emp = String.format("%s\n%s\n%s\n%s\n%s\n%s\n", 
@@ -62,4 +70,5 @@ public class Employee {
 					"Department:", getDepartment(), "Assigned Bug:", getAssignedBugId());
 		return emp;
 	}
+	
 }

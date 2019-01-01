@@ -148,9 +148,6 @@ public class BugTracker {
 	public String updateBugRecord(ClientThread client, String bugID) {
 		Bug bug = findBugByID(bugID);
 		String result = "";
-		String updateCommandList = "Command list:\n1. Update bug status.\n2. Append to problem description.\n3. Change assigned user.";
-		String message;
-		
 		
 		if(bug == null) {
 			result = "No such bug ID.";
@@ -161,36 +158,8 @@ public class BugTracker {
 		//Try/catch/finally statement to release lock on bug if any exception happens
 		}else if(bug.tryLock()){		
 			try {
-				do {
-					client.sendMessage(updateCommandList);
-					message = client.readMessage();
-
-					if(message.equalsIgnoreCase("1")) {
-						client.sendMessage("Enter new status:");
-						String status = client.readMessage();
-						bug.setStatus(status);
-						updateBugFile();
-						result = "Bug status changed to " + status;
-						message = "valid";
-					}else if(message.equalsIgnoreCase("2")) {
-						client.sendMessage("Enter problem description to append:");
-						String probDescription = client.readMessage();
-						bug.setDescription(bug.getDescription() + ". " + probDescription);
-						updateBugFile();
-						result = "Bug description appended to existing one.";
-						message = "valid";
-					}else if(message.equalsIgnoreCase("3")) {
-						client.sendMessage("Enter user id to assign bug:");
-						String userID = client.readMessage();
-						bug.setAssignedToID(userID);
-						updateBugFile();
-						result = "Bug " + bug.getId() + " assigned to " + userID;
-						message = "valid";
-					}
-				} while (!(message.equalsIgnoreCase("valid")) && !(message.equalsIgnoreCase("exit")));
+				result = updateBugRecordMenu(client, bug);
 			} catch (Exception e) {
-				e.printStackTrace();
-				System.out.println("DO WHILE IN BUG TRACKER");
 				client.closeConnection();
 			}finally {
 				bug.unlockBug();
@@ -198,6 +167,58 @@ public class BugTracker {
 		}else {
 			result = "Some other user is working on this bug record. Try again later.";
 		}
+		return result;
+	}
+	
+	private String updateBugRecordMenu(ClientThread client, Bug bug) {
+		String result = "";
+		String updateCommandList = "Command list:\n1. Update bug status.\n2. Append to problem description.\n3. Change assigned user.";
+		String message;
+		
+		do {
+			client.sendMessage(updateCommandList);
+			message = client.readMessage();
+			//Update bug status
+			if(message.equalsIgnoreCase("1")) {
+				client.sendMessage("Enter new status:");
+				String status = client.readMessage();
+				bug.setStatus(status);
+				updateBugFile();
+				result = "Bug status changed to " + status;
+				message = "valid";
+			//Append to problem description
+			}else if(message.equalsIgnoreCase("2")) {
+				client.sendMessage("Enter problem description to append:");
+				String probDescription = client.readMessage();
+				bug.setDescription(bug.getDescription() + ". " + probDescription);
+				updateBugFile();
+				result = "Bug description appended to existing one.";
+				message = "valid";
+			//Change assigned user
+			}else if(message.equalsIgnoreCase("3")) {
+				client.sendMessage(empData.getAllEmployees() + "\nEnter user id to assign bug(press enter to leave unassigned):");
+				String userID = client.readMessage();
+				if(userID.equalsIgnoreCase("")) {
+					bug.setAssignedToID("N/A");
+					result = "Bug has been unassigned";
+					return result;
+				}
+				Employee emp = findEmployeeByID(userID);
+				if(emp == null) {
+					result = "No such employee ID.";
+					return result;
+				}
+				bug.setAssignedToID(userID);
+				emp.setAssignedBugId(bug.getId());
+				updateBugFile();
+				result = "Bug " + bug.getId() + " assigned to " + userID;
+				message = "valid";
+			}else {
+				client.sendMessage("Unknown commad. Press enter to continue");
+				message = client.readMessage();
+			}
+		} while (!(message.equalsIgnoreCase("valid")) && !(message.equalsIgnoreCase("exit")) && message == null);
+		
 		return result;
 	}
 	
@@ -219,6 +240,9 @@ public class BugTracker {
 		return register.getRegStatus();
 	}
 	
+	public Employee getRegisteredEmployee() {
+		return register.getEmployee();
+	}
 	
 	//Gettters/Setters
 	public BugsData getBugsList() {

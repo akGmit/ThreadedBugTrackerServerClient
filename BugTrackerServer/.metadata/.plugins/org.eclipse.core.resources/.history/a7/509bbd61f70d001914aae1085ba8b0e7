@@ -1,0 +1,241 @@
+//BugTracker class - main class for application functions
+//Holds bug records and employee data
+//This class is instantiated when server is started and is shared among all client threads
+//Most of synchronization is dealt with in this class
+package server;
+
+import java.util.Date;
+import java.util.Random;
+
+public class BugTracker {
+	private BugsData bugsData;
+	private EmployeeData empData;
+	private Register register;
+	
+	//Constructor
+	//Creates instances of :
+	//	BugsData containing all bug records
+	//	EmployeeData containing all employee records
+	// 	Register for new user registration, validation and recording to employee data file
+	public BugTracker() {
+		this.bugsData = new BugsData();
+		this.empData = new EmployeeData();
+		this.register = new Register(this.empData);
+	}
+
+	//Create bug record
+	//Method for creating new bug
+	//Receives ClientThread as parameter and prompts user for required information
+	//Using date object for date stamp
+	//Using Random class to generate bug id
+	public String setBugRecord(ClientThread client) {
+		Bug bug = new Bug();
+
+		try {
+			client.sendMessage("Enter application name:");
+			bug.setApplicationName(client.readMessage());
+
+			bug.setDate(new Date());
+
+			client.sendMessage("Platform:");
+			bug.setPlatform(client.readMessage());
+
+			client.sendMessage("Bug record description:");
+			bug.setDescription(client.readMessage());
+
+			client.sendMessage("Status:");
+			bug.setStatus(client.readMessage());
+
+			bug.setId("B" + new Random().nextInt(100000));
+
+			client.sendMessage("Assign to employee ID (press Enter if not assigning):");
+			String assigned = client.readMessage();
+
+			if(assigned.equalsIgnoreCase("")) {
+				bug.setAssignedToID("N/A");
+			}else {
+				bug.setAssignedToID(assigned);
+			}
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		
+		addBug(bug);
+		
+		return "Bug added to databse.";
+	}
+
+	//Add bug to bugs database
+	//Synchronized method to delegate bug adding to BugsData object
+	//If statement for checking if bug id is unique
+	private synchronized void addBug(Bug bug) {
+		if(isBugIdUniqe(bug)) {
+			bugsData.addBug(bug);
+		}
+	}
+
+	//Recursive check and set for unique Bug ID
+	//Will call itself recursively and check if bug id is unique
+	//If not - using Random class to generate random bug id
+	//Returns true if bug id is unique
+	private boolean isBugIdUniqe(Bug bug) {
+		for(Bug b : bugsData.getBugsData()) {
+			if(b.getId().equalsIgnoreCase(bug.getId())) {
+				bug.setId("B" + new Random().nextInt(100000));
+				isBugIdUniqe(bug);
+			}
+		}
+		return true;
+	}
+
+	//Assign bug to employee
+	//Takes bug id and employee id as parameters
+	//Creates two new Bug and Employee objects
+	//Deals with invalid information and synchronization in if/else if statement
+	public String assignBugToEmployee(String bugID, String empID) {
+		Bug bug = findBugByID(bugID);
+		Employee emp = findEmployeeByID(empID);
+		String result = "";
+
+		if(bug == null) {
+			result = "No such bug ID.";
+		}else if(emp == null){
+			result = "No such employee ID.";
+		}else if(bug.tryLock()){		
+			try {
+				bug.setAssignedToID(empID);
+				emp.setAssignedBugId(bugID);
+				updateBugFile();
+				result = "Bug " + bugID + " assigned to employee " + empID;
+			} catch (Exception e) {
+			}finally {
+				bug.unlockBug();
+			}
+		}else {
+			result = "Some other user is working on this bug record. Try again later.";
+		}
+		return result;
+	}
+
+	//Find bug by id
+	//Traverse bugsData list for passed bug id and return it
+	private Bug findBugByID(String bugID) {
+		Bug bug = null;
+		for(Bug b : bugsData.getBugsData()) {
+			if(b.getId().equalsIgnoreCase(bugID)) {
+				bug = b;
+			}
+		}
+		return bug;
+	}
+
+	//Find employee by id
+	//Traverse empData list for passed bug id and return it
+	private Employee findEmployeeByID(String empID) {
+		Employee emp = null;
+		for(Employee e : empData.getEmployeList()) {
+			if(e.getEmpID().equalsIgnoreCase(empID)) {
+				emp = e;
+			}
+		}
+		return emp;
+	}
+
+	//Update bug record
+	//Takes ClientThread and bug id as parameters
+	//Finds bug by id
+	//If else statement deals with not found bug and synchronization
+	public String updateBugRecord(ClientThread client, String bugID) {
+		Bug bug = findBugByID(bugID);
+		String result = "";
+		String updateCommandList = "Command list:\n1. Update bug status.\n2. Append to problem description.\n3. Change assigned user.";
+		String message;
+		
+		
+		if(bug == null) {
+			result = "No such bug ID.";
+		
+		//If bug is found
+		//Try to lock it, if lock can be obtained
+		//Update bug functions are displayed and according operations performed
+		//Try/catch/finally statement to release lock on bug if any exception happens
+		}else if(bug.tryLock()){		
+			try {
+				do {
+					client.sendMessage(updateCommandList);
+					message = client.readMessage();
+
+					if(message.equalsIgnoreCase("1")) {
+						client.sendMessage("Enter new status:");
+						String status = client.readMessage();
+						bug.setStatus(status);
+						updateBugFile();
+						result = "Bug status changed to " + status;
+						message = "valid";
+					}else if(message.equalsIgnoreCase("2")) {
+						client.sendMessage("Enter problem description to append:");
+						String probDescription = client.readMessage();
+						bug.setDescription(bug.getDescription() + ". " + probDescription);
+						updateBugFile();
+						result = "Bug description appended to existing one.";
+						message = "valid";
+					}else if(message.equalsIgnoreCase("3")) {
+						client.sendMessage("Enter user id to assign bug:");
+						String userID = client.readMessage();
+						bug.setAssignedToID(userID);
+						updateBugFile();
+						result = "Bug " + bug.getId() + " assigned to " + userID;
+						message = "valid";
+					}
+				} while (!(message.equalsIgnoreCase("valid")) && !(message.equalsIgnoreCase("exit")) && message == null);
+			} catch (Exception e) {
+				e.printStackTrace();
+				System.out.println("DO WHILE IN BUG TRACKER");
+				client.closeConnection();
+			}finally {
+				bug.unlockBug();
+			}
+		}else {
+			result = "Some other user is working on this bug record. Try again later.";
+		}
+		return result;
+	}
+	
+	//Synchronized method for updating BugsData instance containing all bug records
+	private synchronized void updateBugFile() {
+		bugsData.updateFile();
+	}
+	
+	//Register function methods
+	public void registerNewEmployee(ClientThread client) {
+		register.registerEmployee(client);
+	}
+	
+	public boolean isEmployeeDataValid() {
+		return register.isEmployeeDataValid();
+	}
+	
+	public String getRegistrationStatus() {
+		return register.getRegStatus();
+	}
+	
+	public Employee getRegisteredEmployee() {
+		return register.getEmployee();
+	}
+	
+	//Gettters/Setters
+	public BugsData getBugsList() {
+		return bugsData;
+	}
+	public void setBugsList(BugsData bugsData) {
+		this.bugsData = bugsData;
+	}
+	public EmployeeData getEmpList() {
+		return empData;
+	}
+	public void setEmpList(EmployeeData empData) {
+		this.empData = empData;
+	}
+
+
+}

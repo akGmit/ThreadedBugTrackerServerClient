@@ -6,6 +6,7 @@ public class Register {
 	private EmployeeData empData;
 	private String regStatus;
 	private boolean employeeDataValid;
+	private Employee employee;
 
 	public Register(EmployeeData empData) {
 		this.empData = empData;
@@ -22,8 +23,11 @@ public class Register {
 		
 		isEmployeeValid(newEmployee);
 		
-		if(isEmployeeDataValid())
+		if(isEmployeeDataValid()) {
+			newEmployee.setLoggedIn(true);
+			setEmployee(newEmployee);
 			addNewEmployee(newEmployee);
+		}
 	}
 	
 	//Synchronized method to add new employee
@@ -79,6 +83,14 @@ public class Register {
 	}
 	
 	//Getters/Setters
+	public void setEmployee(Employee e) {
+		this.employee = e;
+	}
+	
+	public Employee getEmployee() {
+		return this.employee;
+	}
+	
 	public String getRegStatus() {
 		return regStatus;
 	}

@@ -19,15 +19,14 @@ public class BugTrackerClient {
 		input = new Scanner(System.in);	
 		input.useDelimiter("\n");
 		try { 
-			//Get 
 			System.out.println("Enter IP address of a server: ");
-			//String serverIP = input.next();
-			//requestSocket = new Socket(serverIP, SERVER_PORT);
-			requestSocket = new Socket("localhost", SERVER_PORT); 
+			String serverIP = input.next();
+			requestSocket = new Socket(serverIP, SERVER_PORT);
+			//requestSocket = new Socket("localhost", SERVER_PORT); 
 			
 			//Output/input streams
 			out = new ObjectOutputStream(requestSocket.getOutputStream());
-			out.flush(); 
+			out.flush();
 			in = new ObjectInputStream(requestSocket.getInputStream());
 			System.out.println("Connected to BugTracker application server.");
 			//Main do while loop for sending end recieving messsages from server

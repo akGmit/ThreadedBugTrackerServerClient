@@ -7,10 +7,18 @@ public class Login {
 	private String email;
 	private String password;
 	private String loginMessage;
+	private EmployeeData empData;
+	private ClientThread client;
+	private Employee loggedInEmployee;
 	
-	public Login(EmployeeData empList, ClientThread client) {
+	public Login(EmployeeData empData, ClientThread client) {
+		this.client = client;
+		this.empData = empData;
+	}
+	
+	public void login() {
 		setLoginDetails(client);
-		authUser(empList.getEmployeList());
+		authUser(empData.getEmployeList());
 	}
 
 	private void setLoginDetails(ClientThread client) {
@@ -21,18 +29,32 @@ public class Login {
 		password = client.readMessage();
 	}
 	
-	private void authUser(List<Employee> empList) {
-		for(Employee e : empList) {
+	private void authUser(List<Employee> empData) {
+		for(Employee e : empData) {
 			if(e.getPassword().equals(getPassword()) && e.getEmail().equalsIgnoreCase(getEmail())) {
-				setLoggedIn(true);
-				setLoginMessage("Login successful.");
-				return;
+				if(!(checkIsLoggedIn(e))){
+					setLoggedInEmployee(e);
+					setLoggedIn(true);
+					setLoginMessage("Login successful.");
+					return;
+				}else {
+					setLoginMessage("This user is already logged in.");
+					return;
+				}
 			}
 		}
 		setLoginMessage("Login details incorrect.");
 		setLoggedIn(false);
 	}
-
+	
+	public void logOut(Employee e) {
+		e.setLoggedIn(false);
+	}
+	
+	private boolean checkIsLoggedIn(Employee e) {
+		return e.isLoggedIn();
+	}
+	
 	public boolean isLoggedIn() {
 		return loggedIn;
 	}
@@ -63,6 +85,15 @@ public class Login {
 
 	public void setLoginMessage(String loginMessage) {
 		this.loginMessage = loginMessage;
+	}
+
+	public Employee getLoggedInEmployee() {
+		return loggedInEmployee;
+	}
+
+	public void setLoggedInEmployee(Employee loggedInEmployee) {	
+		this.loggedInEmployee = loggedInEmployee;
+		this.loggedInEmployee.setLoggedIn(true);
 	}
 	
 	

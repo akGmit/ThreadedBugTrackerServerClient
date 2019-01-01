@@ -14,8 +14,9 @@ public class ClientThread implements Runnable{
 	private ObjectOutputStream out;
 	private ObjectInputStream in;
 	private String message;
-	boolean userLoggedIn = false;
+	private boolean userLoggedIn = false;
 	private BugTracker bugTracker;
+	private Employee employee;
 	
 	//Informational messages
 	private String commandList = "Command list:\n1. Add bug\n2. Assign bug\n3. View not assigned bugs\n4. View all bugs\n5. Update bug record\nEnter \"exit\" to quit.";
@@ -42,12 +43,13 @@ public class ClientThread implements Runnable{
 			do {		
 				
 				//Call to method for authorization check
-				auth();
+				if(!userLoggedIn)
+					auth();
 				
 				//Main menu 
 				if(!(message.equalsIgnoreCase("exit"))) {
 					sendMessage(commandList);
-					message = (String) in.readObject();
+					readMessage();
 					System.out.println(message);
 				}
 				
@@ -57,7 +59,6 @@ public class ClientThread implements Runnable{
 				//Add bug 
 				if(message.equalsIgnoreCase("1")) {
 					sendMessage(bugTracker.setBugRecord(this) + continueMessage);
-					message = "ok";
 				//Assign bug
 				}else if(message.equalsIgnoreCase("2")) {
 					
@@ -86,19 +87,16 @@ public class ClientThread implements Runnable{
 					String bugID = (String)in.readObject();
 
 					sendMessage(bugTracker.updateBugRecord(this, bugID) + continueMessage);
-				}else if(!(message.equalsIgnoreCase("ok"))){
+				}else {
 					sendMessage("Unknown command." + continueMessage);
 				}
 
 				if(!message.equalsIgnoreCase("exit")) message = (String) in.readObject();
 
 			}while(!(message.equalsIgnoreCase("exit")));
-
-			//System.out.println("Client ended connection from " + clientSocket.getInetAddress());
-
+	
 		} catch (Exception e) {
-			System.out.println("EXception here");
-			System.out.println(e);
+			System.out.println("Client connection error.");
 		}finally {
 			closeConnection();
 		}
@@ -107,43 +105,58 @@ public class ClientThread implements Runnable{
 	//Method for client authorization or registration
 	//If instance variable userLogged in is false
 	//Client will be prompted for Login or Registration options
-	private void auth() throws Exception{
-		if(!userLoggedIn) {
+	private void auth() {
+		try {
 			do {			
 				sendMessage("Command list:\n1.Login\n2.Register" + exitMessage);
-				message = (String) in.readObject();
+				//message = (String) in.readObject();
+				readMessage();
 
 				if(message.equalsIgnoreCase("1")) {
-
-					Login login = new Login(bugTracker.getEmpList(), this);
-					userLoggedIn = login.isLoggedIn();
-					sendMessage(login.getLoginMessage() + continueMessage);
-					message = (String) in.readObject();
-
+					login();
 				}else if(message.equalsIgnoreCase("2")) {
-					boolean userDetailsValid = false;
-					do {
-						bugTracker.registerNewEmployee(this);
-						userDetailsValid = bugTracker.isEmployeeDataValid();
-						userLoggedIn = true;
-						sendMessage(bugTracker.getRegistrationStatus() + continueMessage);
-						message = (String) in.readObject();
-					}while(!userDetailsValid && !(message.equalsIgnoreCase("exit")));
+					register();
 				}
 			} while (!userLoggedIn && !(message.equalsIgnoreCase("exit")));
+		} catch (Exception e) {
 		}
+	}
+	//LOGIN
+	private void login() throws Exception{
+		Login login = new Login(bugTracker.getEmpList(), this);
+		login.login();
+		if(login.isLoggedIn()) {
+			userLoggedIn = true;
+			employee = login.getLoggedInEmployee();
+		}
+		sendMessage(login.getLoginMessage() + continueMessage);
+		message = (String) in.readObject();
+	}
+	//REGISTER
+	private void register() throws Exception{
+		boolean userDetailsValid = false;
+		do {
+			bugTracker.registerNewEmployee(this);
+			userDetailsValid = bugTracker.isEmployeeDataValid();
+			if(userDetailsValid) {
+				employee = bugTracker.getRegisteredEmployee();
+				userLoggedIn = true;
+			}
+			sendMessage(bugTracker.getRegistrationStatus() + continueMessage);
+			message = (String) in.readObject();
+		}while(!userDetailsValid && !(message.equalsIgnoreCase("exit")));
 	}
 
 	//Close streams and client socket
 	public void closeConnection() {
 		System.out.println("Client ended connection from " + clientSocket.getInetAddress());
 		try {
+			if(employee != null)
+				employee.setLoggedIn(false);
 			in.close();
 			out.close();
 			clientSocket.close();
 		} catch (IOException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
 		}
 	}
 
@@ -153,7 +166,6 @@ public class ClientThread implements Runnable{
 			out.writeObject(msg);
 			out.flush();
 		} catch (Exception e) {
-			System.out.println("Closed at sendmessage");
 			closeConnection();
 		}
 	}
@@ -162,7 +174,6 @@ public class ClientThread implements Runnable{
 		try {
 			message = (String) in.readObject();
 		} catch (Exception e) {
-			System.out.println("Closed at readMEssage");
 			closeConnection();
 		}
 		return message;
